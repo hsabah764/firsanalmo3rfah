@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>فرسان المعرفة</title>
+
+<style>
+  :root{
+    --bg1:#fff6d6;
+    --bg2:#fde7a2;
+    --card:#ffffffcc;
+    --green:#155b3a;
+    --green2:#1f7a50;
+    --gold:#caa24a;
+    --text:#0b1b12;
+    --muted:#355;
+    --shadow: 0 12px 30px rgba(0,0,0,.15);
+  }
+
+  body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    color:var(--text);
+    background: radial-gradient(1200px 600px at 50% 0%, var(--bg1), var(--bg2));
+    min-height:100vh;
+  }
+
+  .screen{ display:none; padding:18px; max-width:520px; margin:0 auto; }
+  .active{ display:block; }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-top:8px;
+  }
+
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand img{ width:44px; height:44px; border-radius:12px; object-fit:cover; box-shadow: var(--shadow); }
+  .brand .t1{ font-weight:800; }
+  .brand .t2{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+  .card{
+    background:var(--card);
+    border:1px solid rgba(255,255,255,.8);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:16px;
+    backdrop-filter: blur(6px);
+    margin-top:14px;
+  }
+
+  h1,h2,h3,p{ margin:10px 0; }
+
+  .btn{
+    padding:12px 16px;
+    border:none;
+    border-radius:14px;
+    font-size:16px;
+    cursor:pointer;
+    background: linear-gradient(180deg, var(--green2), var(--green));
+    color:white;
+    box-shadow: 0 10px 18px rgba(21,91,58,.25);
+  }
+  .btn.secondary{
+    background: linear-gradient(180deg, #2d6cdf, #1e88e5);
+    box-shadow: 0 10px 18px rgba(30,136,229,.22);
+  }
+  .btn.ghost{
+    background: transparent;
+    border:1px solid rgba(21,91,58,.35);
+    color:var(--green);
+    box-shadow:none;
+  }
+
+  input{
+    width:100%;
+    padding:12px 14px;
+    font-size:16px;
+    border-radius:14px;
+    border:1px solid rgba(0,0,0,.12);
+    outline:none;
+    background:white;
+    box-sizing:border-box;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:10px;
+    margin-top:12px;
+  }
+
+  .num{
+    padding:14px 0;
+    border-radius:14px;
+    font-weight:800;
+    border:none;
+    cursor:pointer;
+    background: linear-gradient(180deg, #2b8cff, #1e88e5);
+    color:white;
+    box-shadow: 0 10px 18px rgba(30,136,229,.18);
+  }
+  .num.correct{ background: linear-gradient(180deg, #2fb86a, #1f8c4f); }
+  .num.wrong{ background: linear-gradient(180deg, #e05757, #c62828); }
+  .num.used{ background:#777; box-shadow:none; cursor:not-allowed; }
+
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+
+  .pill{
+    padding:8px 10px;
+    border-radius:999px;
+    background: rgba(202,162,74,.22);
+    border:1px solid rgba(202,162,74,.35);
+    font-weight:700;
+    color:#6a4a10;
+    font-size:13px;
+  }
+
+  .answers{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:10px;
+    margin-top:12px;
+  }
+  .ans{
+    text-align:right;
+    padding:12px 14px;
+    border-radius:14px;
+    border:1px solid rgba(0,0,0,.12);
+    background:white;
+    cursor:pointer;
+    font-size:16px;
+  }
+
+  .timer{
+    display:flex; justify-content:center; gap:8px; align-items:center;
+    margin-top:12px;
+    color:#6a4a10;
+    font-weight:800;
+  }
+
+  .footerNote{ font-size:12px; color:rgba(0,0,0,.55); margin-top:10px; }
+
+  /* انفجار بسيط */
+  .burst{
+    position:fixed;
+    pointer-events:none;
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    animation: burst 700ms ease-out forwards;
+  }
+  @keyframes burst{
+    from{ transform:scale(1); opacity:1; }
+    to{ transform:translate(var(--x), var(--y)) scale(0.3); opacity:0; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Splash -->
+<div id="splash" class="screen active">
+  <div class="card" style="text-align:center; margin-top:60px;">
+    <img src="logo.jpg" alt="logo" style="width:220px; border-radius:20px; box-shadow:var(--shadow);" />
+    <h2 style="margin-top:12px;">فرسان المعرفة</h2>
+    <p class="footerNote">جارٍ التحميل...</p>
+  </div>
+</div>
+
+<!-- Menu -->
+<div id="menu" class="screen">
+  <div class="topbar">
+    <div class="brand">
+      <img src="logo.jpg" alt="logo" />
+      <div>
+        <div class="t1">فرسان المعرفة</div>
+        <div class="t2">مسابقة ثقافية تفاعلية</div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn ghost" onclick="go('settings')">الإعدادات</button>
+      <button class="btn ghost" onclick="go('about')">حول</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>ابدأ اللعب</h3>
+    <div class="row">
+      <button class="btn" onclick="setMode('ai')">ضد الذكاء الاصطناعي</button>
+      <button class="btn secondary" onclick="setMode('friend')">ضد صديق (نفس الجهاز)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>آخر نتيجة محفوظة</h3>
+    <p id="lastSaved">—</p>
+    <button class="btn ghost" onclick="clearSaved()">مسح الحفظ</button>
+  </div>
+</div>
+
+<!-- Settings -->
+<div id="settings" class="screen">
+  <div class="topbar">
+    <button class="btn ghost" onclick="go('menu')">رجوع</button>
+    <div class="pill">الإعدادات</div>
+  </div>
+
+  <div class="card">
+    <h3>الصوت</h3>
+    <button class="btn" onclick="toggleSound()" id="soundBtn">إيقاف الصوت</button>
+  </div>
+
+  <div class="card">
+    <h3>البيانات</h3>
+    <button class="btn secondary" onclick="resetAll()">مسح كل البيانات</button>
+  </div>
+</div>
+
+<!-- About -->
+<div id="about" class="screen">
+  <div class="topbar">
+    <button class="btn ghost" onclick="go('menu')">رجوع</button>
+    <div class="pill">حول التطبيق</div>
+  </div>
+  <div class="card">
+    <h3>فرسان المعرفة</h3>
+    <p>لعبة أسئلة ثقافية بنظام جولات، ومؤقت لكل سؤال.</p>
+    <p class="footerNote">تم برمجة التطبيق عن طريق Azoz7.1</p>
+  </div>
+</div>
+
+<!-- Name -->
+<div id="nameScreen" class="screen">
+  <div class="topbar">
+    <button class="btn ghost" onclick="go('menu')">رجوع</button>
+    <div class="pill" id="modeLabel">—</div>
+  </div>
+
+  <div class="card">
+    <h3>الأسماء</h3>
+    <input id="player1Name" placeholder="اسم اللاعب الأول" maxlength="18" />
+    <div style="height:10px;"></div>
+    <div id="p2Wrap" style="display:none">
+      <input id="player2Name" placeholder="اسم اللاعب الثاني" maxlength="18" />
+      <div style="height:10px;"></div>
+    </div>
+    <button class="btn" onclick="startGame()">ابدأ</button>
+    <p class="footerNote">الجولة = سؤال واحد لكل لاعب (5 جولات).</p>
+  </div>
+</div>
+
+<!-- Board -->
+<div id="boardScreen" class="screen">
+  <div class="topbar">
+    <div class="brand">
+      <img src="logo.jpg" alt="logo" />
+      <div>
+        <div class="t1" id="roundText">الجولة 1 / 5</div>
+        <div class="t2" id="turnText">الدور: —</div>
+      </div>
+    </div>
+    <button class="btn ghost" onclick="confirmExit()">خروج</button>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div class="pill" id="scoreText">—</div>
+      <div class="pill">١٥ رقم (ثابتة طول اللعبة)</div>
+      <div class="pill" id="ruleText">سؤال واحد لكل لاعب</div>
+    </div>
+
+    <div class="grid" id="board"></div>
+  </div>
+
+  <div class="footerNote" id="boardHint">اختر رقم لدورك. الرقم ينحجب لباقي اللعبة.</div>
+</div>
+
+<!-- Question Screen -->
+<div id="questionScreen" class="screen">
+  <div class="topbar">
+    <button class="btn ghost" onclick="backToBoard()">رجوع</button>
+    <div class="pill" id="qModePill">سؤال</div>
+  </div>
+
+  <div class="card">
+    <h3 id="qText">—</h3>
+    <div class="answers" id="ansList"></div>
+
+    <div class="timer">
+      ⏱ <span id="time">60</span>
+    </div>
+
+    <p class="footerNote" id="feedback">اختر الإجابة خلال دقيقة.</p>
+  </div>
+</div>
+
+<!-- Round Result -->
+<div id="roundResult" class="screen">
+  <div class="card" style="margin-top:40px;">
+    <h2 id="roundResultTitle">نتيجة الجولة</h2>
+    <p id="roundResultScore">—</p>
+    <button class="btn" onclick="continueAfterRound()">متابعة</button>
+  </div>
+</div>
+
+<!-- Sounds -->
+<audio id="soundCorrect" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b2b5c0c52.mp3?filename=correct-2-46134.mp3"></audio>
+<audio id="soundWrong" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1f3d03e236.mp3?filename=wrong-47985.mp3"></audio>
+
+<script>
+/* ========= Helpers ========= */
+const $ = (id)=>document.getElementById(id);
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+/* ========= Rules (حسب طلبك) ========= */
+const ROUNDS = 5;
+const QUESTIONS_PER_PLAYER_PER_ROUND = 1;         // <-- كل جولة سؤال واحد لكل لاعب
+const TURNS_PER_ROUND = QUESTIONS_PER_PLAYER_PER_ROUND * 2; // 2 دور (لاعب1 + لاعب2/AI)
+
+/* ========= Questions (50+) ========= */
+const QUESTIONS = [
+  {q:"ما عاصمة سلطنة عمان؟", a:["مسقط","صلالة","نزوى","صحار"], c:0},
+  {q:"كم عدد الكواكب في المجموعة الشمسية؟", a:["7","8","9","10"], c:1},
+  {q:"أكبر محيط في العالم؟", a:["الأطلسي","الهادئ","الهندي","المتجمد"], c:1},
+  {q:"كم عدد سور القرآن الكريم؟", a:["112","113","114","115"], c:2},
+  {q:"أطول نهر في العالم من الخيارات؟", a:["الأمازون","النيل","الدانوب","السين"], c:1},
+  {q:"أصغر دولة في العالم؟", a:["موناكو","الفاتيكان","مالطا","سنغافورة"], c:1},
+  {q:"وحدة قياس شدة التيار الكهربائي؟", a:["الفولت","الأوم","الأمبير","الواط"], c:2},
+  {q:"من هو مكتشف الجاذبية (شائعًا)؟", a:["نيوتن","أينشتاين","تسلا","داروين"], c:0},
+  {q:"عاصمة أستراليا؟", a:["سيدني","ملبورن","كانبرا","بيرث"], c:2},
+  {q:"أكبر قارة مساحة؟", a:["أفريقيا","آسيا","أوروبا","أمريكا الشمالية"], c:1},
+
+  {q:"أكبر صحراء حارة في العالم؟", a:["الربع الخالي","جوبي","الصحراء الكبرى","أتاكاما"], c:2},
+  {q:"عدد أركان الإسلام؟", a:["3","4","5","6"], c:2},
+  {q:"في أي اتجاه تشرق الشمس؟", a:["الشمال","الجنوب","الشرق","الغرب"], c:2},
+  {q:"أقرب الكواكب إلى الشمس؟", a:["عطارد","الزهرة","الأرض","المريخ"], c:0},
+  {q:"أكبر عضو في جسم الإنسان؟", a:["الكبد","القلب","الجلد","الرئة"], c:2},
+  {q:"عاصمة مصر؟", a:["الإسكندرية","القاهرة","الجيزة","الأقصر"], c:1},
+  {q:"كم دقيقة في 3 ساعات ونصف؟", a:["180","200","210","240"], c:2},
+  {q:"عدد ألوان قوس قزح؟", a:["5","6","7","8"], c:2},
+  {q:"أكبر بحيرة في العالم (مساحة)؟", a:["بايكال","قزوين","سوبيريور","فيكتوريا"], c:1},
+  {q:"الثديي الوحيد القادر على الطيران الحقيقي؟", a:["السنجاب الطائر","الخفاش","النعامة","الكنغر"], c:1},
+
+  {q:"ما اسم وحدة قياس القوة؟", a:["نيوتن","جول","واط","باسكال"], c:0},
+  {q:"أكبر كوكب في المجموعة الشمسية؟", a:["زحل","المشتري","أورانوس","نبتون"], c:1},
+  {q:"أكثر عنصر موجود في الكون؟", a:["الأكسجين","الحديد","الهيدروجين","النيتروجين"], c:2},
+  {q:"كم عدد أيام السنة الكبيسة؟", a:["365","366","367","364"], c:1},
+  {q:"أسرع حيوان بري؟", a:["الفهد","الأسد","الغزال","النمر"], c:0},
+  {q:"ما اسم العملية من صلب إلى غاز مباشرة؟", a:["الانصهار","التسامي","التبخر","التكاثف"], c:1},
+  {q:"عاصمة اليابان؟", a:["أوساكا","كيوتو","طوكيو","هيروشيما"], c:2},
+  {q:"أكبر دولة عربية مساحة؟", a:["السعودية","الجزائر","السودان","عُمان"], c:1},
+  {q:"عدد قلوب الأخطبوط؟", a:["1","2","3","4"], c:2},
+  {q:"عاصمة فرنسا؟", a:["روما","برلين","باريس","مدريد"], c:2},
+
+  {q:"عاصمة تركيا؟", a:["إسطنبول","أنقرة","إزمير","بورصة"], c:1},
+  {q:"أعلى جبل في العالم؟", a:["كليمنجارو","إيفرست","الألب","مون بلان"], c:1},
+  {q:"أطول سورة في القرآن؟", a:["النساء","البقرة","آل عمران","المائدة"], c:1},
+  {q:"عاصمة الإمارات؟", a:["دبي","الشارقة","أبوظبي","العين"], c:2},
+  {q:"عاصمة السعودية؟", a:["جدة","الرياض","المدينة","الدمام"], c:1},
+  {q:"أكبر عضو داخلي؟", a:["القلب","الكبد","الطحال","الكلى"], c:1},
+  {q:"كم ضلع للمثلث؟", a:["2","3","4","5"], c:1},
+  {q:"عاصمة قطر؟", a:["الدوحة","الريان","الوكرة","الخوير"], c:0},
+  {q:"أي كوكب يُعرف بالكوكب الأحمر؟", a:["المريخ","الزهرة","عطارد","نبتون"], c:0},
+  {q:"عاصمة الكويت؟", a:["الجهراء","حولي","مدينة الكويت","الفحيحيل"], c:2},
+
+  {q:"عاصمة البحرين؟", a:["المحرق","الرفاع","المنامة","سترة"], c:2},
+  {q:"كم شهرًا في السنة؟", a:["10","11","12","13"], c:2},
+  {q:"عاصمة المغرب؟", a:["مراكش","الرباط","الدار البيضاء","فاس"], c:1},
+  {q:"كم عدد القارات؟", a:["5","6","7","8"], c:2},
+  {q:"أكبر محيط؟", a:["الهندي","الهادئ","الأطلسي","المتجمد"], c:1},
+  {q:"أكبر كوكب صخري؟", a:["عطارد","الزهرة","الأرض","المريخ"], c:2},
+  {q:"عاصمة الأردن؟", a:["إربد","العقبة","الزرقاء","عمّان"], c:3},
+  {q:"عاصمة العراق؟", a:["الموصل","البصرة","بغداد","النجف"], c:2},
+  {q:"أكبر حيوان بري؟", a:["الفيل","وحيد القرن","الزرافة","الجاموس"], c:0},
+  {q:"أكثر معدن موصل للكهرباء؟", a:["النحاس","الفضة","الحديد","الألمنيوم"], c:1},
+];
+
+/* ========= Settings ========= */
+let soundOn = true;
+function toggleSound(){
+  soundOn = !soundOn;
+  $("soundBtn").innerText = soundOn ? "إيقاف الصوت" : "تشغيل الصوت";
+  localStorage.setItem("fk_soundOn", JSON.stringify(soundOn));
+}
+function loadSettings(){
+  const raw = localStorage.getItem("fk_soundOn");
+  if(raw !== null){
+    try{ soundOn = JSON.parse(raw); }catch{}
+  }
+  if($("soundBtn")) $("soundBtn").innerText = soundOn ? "إيقاف الصوت" : "تشغيل الصوت";
+}
+function resetAll(){
+  const ok = confirm("أكيد تبي تمسح كل البيانات والإعدادات؟");
+  if(!ok) return;
+  localStorage.clear();
+  soundOn = true;
+  loadSaved();
+  loadSettings();
+  alert("تم مسح كل البيانات");
+}
+
+/* ========= Save/Load last score ========= */
+function saveLast(){
+  const obj = { p1: player1Name, p2: opponentName, mode, score1, score2, at: new Date().toISOString() };
+  localStorage.setItem("fk_last", JSON.stringify(obj));
+}
+function loadSaved(){
+  const raw = localStorage.getItem("fk_last");
+  if(!raw){ $("lastSaved").innerText = "لا يوجد"; return; }
+  try{
+    const d = JSON.parse(raw);
+    const m = d.mode==="ai" ? "AI" : "صديق";
+    $("lastSaved").innerText = `${d.p1} ضد ${d.p2} (${m}) — ${d.score1}:${d.score2}`;
+  }catch{
+    $("lastSaved").innerText = "لا يوجد";
+  }
+}
+function clearSaved(){
+  localStorage.removeItem("fk_last");
+  loadSaved();
+}
+
+/* ========= Game state ========= */
+let mode = "ai";           // ai | friend
+let player1Name = "عبدالعزيز";
+let opponentName = "الخصم";
+
+let round = 1;
+let current = 1;           // 1 = player1, 2 = opponent
+let score1 = 0, score2 = 0;
+
+let turnsThisRound = 0;    // 0..2
+let timer = null;
+
+let selectedTile = null;
+
+// المهم: خريطة الأسئلة للـ15 رقم ثابتة طول اللعبة
+let questionMap = [];      // length 15, each is question index
+let tileState = [];        // "free" | "correct" | "wrong" (مقفول إذا مو free)
+
+let suddenDeath = false;   // كسر التعادل
+let suddenTurns = 0;       // سؤالين (واحد لكل لاعب) ثم نتحقق
+
+/* ========= Start ========= */
+setTimeout(()=>{
+  loadSettings();
+  loadSaved();
+  go('menu');
+}, 1200);
+
+function setMode(m){
+  mode = m;
+  $("modeLabel").innerText = (m==="ai") ? "نمط: ضد الذكاء الاصطناعي" : "نمط: ضد صديق";
+  $("p2Wrap").style.display = (m==="friend") ? "block" : "none";
+  go('nameScreen');
+}
+
+function startGame(){
+  player1Name = ($("player1Name").value || "عبدالعزيز").trim().slice(0,18);
+
+  if(mode==="friend"){
+    opponentName = ($("player2Name").value || "اللاعب الثاني").trim().slice(0,18);
+  }else{
+    opponentName = "الذكاء الاصطناعي";
+  }
+
+  // reset
+  round = 1;
+  current = 1;
+  score1 = 0; score2 = 0;
+  turnsThisRound = 0;
+  suddenDeath = false;
+  suddenTurns = 0;
+
+  // أنشئ لوحة ثابتة للعبة كاملة
+  initWholeGameBoard();
+
+  go('boardScreen');
+  updateBoardUI();
+}
+
+function initWholeGameBoard(){
+  // توزيع عشوائي ثابت للـ15 رقم (مرة واحدة فقط في اللعبة)
+  const idxs = [...Array(QUESTIONS.length).keys()];
+  shuffle(idxs);
+  questionMap = idxs.slice(0, 15);
+
+  tileState = Array(15).fill("free");
+  renderBoard();
+}
+
+function renderBoard(){
+  const board = $("board");
+  board.innerHTML = "";
+  for(let i=0;i<15;i++){
+    const b = document.createElement("button");
+    b.className = "num";
+    b.innerText = (i+1);
+    b.id = "tile_"+i;
+    b.onclick = ()=> openTile(i);
+    board.appendChild(b);
+  }
+  repaintTiles();
+}
+
+function repaintTiles(){
+  for(let i=0;i<15;i++){
+    const b = $("tile_"+i);
+    b.className = "num";
+    if(tileState[i] === "correct") b.classList.add("correct");
+    if(tileState[i] === "wrong") b.classList.add("wrong");
+    if(tileState[i] !== "free") b.classList.add("used");
+    b.disabled = tileState[i] !== "free";
+  }
+}
+
+function openTile(i){
+  if(tileState[i] !== "free") return;
+  selectedTile = i;
+  openQuestionScreen();
+}
+
+/* ========= Question screen ========= */
+function openQuestionScreen(){
+  const qIndex = questionMap[selectedTile];
+  const q = QUESTIONS[qIndex];
+
+  $("qText").innerText = q.q;
+  $("feedback").innerText = "اختر الإجابة خلال دقيقة.";
+  $("ansList").innerHTML = "";
+
+  q.a.forEach((text, idx)=>{
+    const btn = document.createElement("button");
+    btn.className = "ans";
+    btn.innerText = text;
+    btn.onclick = ()=> submitAnswer(idx, q.c, false);
+    $("ansList").appendChild(btn);
+  });
+
+  startTimer(60, ()=> submitAnswer(-1, q.c, true));
+  go('questionScreen');
+}
+
+function backToBoard(){
+  stopTimer();
+  go('boardScreen');
+}
+
+function submitAnswer(chosen, correct, isTimeout){
+  stopTimer();
+
+  const ok = (chosen === correct);
+
+  [...$("ansList").children].forEach(b=>b.disabled=true);
+
+  burst(window.innerWidth/2, window.innerHeight/2, ok ? "#2fb86a" : "#e05757");
+
+  if(ok){
+    tileState[selectedTile] = "correct";
+    if(soundOn) $("soundCorrect").play().catch(()=>{});
+    $("feedback").innerText = "✅ إجابة صحيحة!";
+    if(current===1) score1++; else score2++;
+  }else{
+    tileState[selectedTile] = "wrong";
+    if(soundOn) $("soundWrong").play().catch(()=>{});
+    $("feedback").innerText = isTimeout ? "⏱ انتهى الوقت!" : "❌ إجابة خاطئة!";
+  }
+
+  setTimeout(()=>{
+    if(!suddenDeath) turnsThisRound++;
+    else suddenTurns++;
+
+    // رجع للوحة
+    go('boardScreen');
+    repaintTiles();
+
+    // بدّل الدور
+    current = (current===1) ? 2 : 1;
+    updateBoardUI();
+
+    // AI يلعب تلقائي
+    if(mode==="ai" && current===2){
+      setTimeout(aiPlay, 700);
+      return;
+    }
+
+    // تحقق نهاية الجولة/كسر التعادل
+    if(!suddenDeath) checkRoundEnd();
+    else checkSuddenDeath();
+  }, 650);
+}
+
+/* ========= AI ========= */
+function aiPlay(){
+  // اختار أي رقم فاضي (يبقى محجوب بعده طول اللعبة)
+  const free = [];
+  for(let i=0;i<15;i++) if(tileState[i]==="free") free.push(i);
+  if(!free.length){
+    // ما في أرقام، ما نقدر نكمل
+    endBecauseNoNumbers();
+    return;
+  }
+
+  selectedTile = free[Math.floor(Math.random()*free.length)];
+  const qIndex = questionMap[selectedTile];
+  const q = QUESTIONS[qIndex];
+
+  const pCorrect = 0.6;
+  let chosen = Math.floor(Math.random()*4);
+  if(Math.random() < pCorrect) chosen = q.c;
+
+  setTimeout(()=> submitAnswer(chosen, q.c, false), 600);
+}
+
+/* ========= Rounds ========= */
+function checkRoundEnd(){
+  // الجولة = سؤال لكل لاعب => دورين
+  if(turnsThisRound >= TURNS_PER_ROUND){
+    go('roundResult');
+    $("roundResultTitle").innerText = `نتيجة الجولة ${round}`;
+    $("roundResultScore").innerText = `${player1Name}: ${score1}  |  ${opponentName}: ${score2}`;
+  }
+}
+
+function continueAfterRound(){
+  // انتقل للجولة التالية بدون تغيير اللوحة أو الأسئلة
+  round++;
+  turnsThisRound = 0;
+  current = 1; // خلي عبدالعزيز يبدأ كل جولة
+
+  if(round > ROUNDS){
+    finishGame();
+    return;
+  }
+
+  go('boardScreen');
+  updateBoardUI();
+}
+
+/* ========= Finish + Sudden Death ========= */
+function finishGame(){
+  if(score1 === score2){
+    // كسر تعادل باستخدام الأرقام المتبقية (بدون إعادة فتح أرقام قديمة)
+    suddenDeath = true;
+    suddenTurns = 0;
+    current = 1;
+    $("ruleText").innerText = "كسر التعادل: سؤال بسؤال";
+    $("qModePill").innerText = "كسر التعادل";
+    $("boardHint").innerText = "كسر التعادل: اختر رقم فاضي. الرقم ينحجب حتى نهاية اللعبة.";
+    go('boardScreen');
+    updateBoardUI();
+
+    // لو AI وبدأ دوره الثاني لاحقًا، عادي
+    // ملاحظة: لو ما في أرقام فاضية أصلاً، ننهي
+    if(!hasFreeTile()) endBecauseNoNumbers(true);
+    return;
+  }
+
+  const winner = (score1 > score2) ? player1Name : opponentName;
+  saveLast();
+  alert(`انتهت المسابقة ✅\nالفائز: ${winner}\n${player1Name}: ${score1} | ${opponentName}: ${score2}`);
+
+  go('menu');
+  loadSaved();
+}
+
+function checkSuddenDeath(){
+  // بعد سؤالين (واحد لكل لاعب) إذا صار فرق ننهي
+  if(suddenTurns >= 2){
+    if(score1 !== score2){
+      const winner = (score1 > score2) ? player1Name : opponentName;
+      saveLast();
+      alert(`انتهت المسابقة ✅\nالفائز: ${winner}\n${player1Name}: ${score1} | ${opponentName}: ${score2}`);
+      go('menu');
+      loadSaved();
+      return;
+    }
+    // ما زال تعادل: نعيد دورة سؤال بسؤال (إذا بقيت أرقام)
+    suddenTurns = 0;
+    current = 1;
+    updateBoardUI();
+    if(!hasFreeTile()) endBecauseNoNumbers(true);
+  }
+}
+
+function hasFreeTile(){
+  return tileState.some(s => s==="free");
+}
+
+function endBecauseNoNumbers(isTie=false){
+  saveLast();
+  if(isTie){
+    alert(`انتهت الأرقام المتاحة ولا يزال تعادل.\n${player1Name}: ${score1} | ${opponentName}: ${score2}`);
+  }else{
+    alert(`انتهت الأرقام المتاحة.\n${player1Name}: ${score1} | ${opponentName}: ${score2}`);
+  }
+  go('menu');
+  loadSaved();
+}
+
+/* ========= Exit ========= */
+function confirmExit(){
+  const ok = confirm("تبي تخرج للواجهة الرئيسية؟ (بيتم فقدان الجولة الحالية)");
+  if(ok){
+    stopTimer();
+    go('menu');
+  }
+}
+
+/* ========= UI ========= */
+function updateBoardUI(){
+  const title = suddenDeath ? "كسر التعادل" : `الجولة ${round} / ${ROUNDS}`;
+  $("roundText").innerText = title;
+
+  const who = (current===1) ? player1Name : opponentName;
+  $("turnText").innerText = `الدور: ${who}`;
+
+  $("scoreText").innerText = `${player1Name}: ${score1}  |  ${opponentName}: ${score2}`;
+
+  if(!suddenDeath){
+    $("ruleText").innerText = "الجولة: سؤال واحد لكل لاعب";
+    $("qModePill").innerText = "سؤال";
+    $("boardHint").innerText = "اختر رقم لدورك. الرقم ينحجب لباقي اللعبة.";
+  }
+}
+
+/* ========= Timer ========= */
+function startTimer(seconds, onEnd){
+  stopTimer();
+  let t = seconds;
+  $("time").innerText = t;
+  timer = setInterval(()=>{
+    t--;
+    $("time").innerText = t;
+    if(t<=0){
+      stopTimer();
+      onEnd?.();
+    }
+  }, 1000);
+}
+function stopTimer(){
+  if(timer){ clearInterval(timer); timer=null; }
+}
+
+/* ========= Burst ========= */
+function burst(x,y,color){
+  for(let i=0;i<14;i++){
+    const d=document.createElement("div");
+    d.className="burst";
+    d.style.left=x+"px";
+    d.style.top=y+"px";
+    d.style.background=color;
+    d.style.setProperty("--x",(Math.random()*120-60)+"px");
+    d.style.setProperty("--y",(Math.random()*120-60)+"px");
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),700);
+  }
+}
+
+/* ========= Shuffle ========= */
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+</script>
+</body>
+</html>
